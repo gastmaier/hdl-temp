@@ -1,0 +1,83 @@
+on:
+  push:
+    branches:
+      - backstage # TODO main
+  pull_request:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+
+    - uses: actions/checkout@v4
+    - name: Install pip packages
+      working-directory: docs
+      run: |
+        pip install pip --upgrade
+        pip install pyyaml $(head -n 1 requirements.txt)
+
+    - name: Generate backstage YAML files
+      run: |
+        python3 .github/scripts/gen_backstage_yaml.py
+
+    - name: Store the generated artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: backstage_yaml
+        path: backstage_yaml
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/backstage' # TODO main
+    needs: [generate]
+    permissions:
+      contents: write
+
+    steps:
+    - run: |
+        git config --global user.name "${{ github.event.head_commit.committer.name }}"
+        git config --global user.email "${{ github.event.head_commit.committer.email }}"
+
+    - uses: actions/checkout@v4
+    - name: Create backstage_yaml branch
+      run: >
+        git ls-remote --exit-code --heads origin refs/heads/backstage_yaml ||
+        (
+          git reset --hard ;
+          git clean -fdx ;
+          git checkout --orphan backstage_yaml ;
+          git reset --hard;
+          git commit -m "empty" --allow-empty ;
+          git push origin backstage_yaml:backstage_yaml
+        )
+
+    - uses: actions/checkout@v4
+      with:
+        ref: 'backstage_yaml'
+
+    - name: Empty backstage_yaml
+      run: |
+        git rm -r . --quiet || true
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: backstage_yaml
+
+    - name: Amend backstage_yaml and push
+      run: |
+        author=$(git log -1 --pretty=format:'%an')
+        email=$(git log -1 --pretty=format:'%ae')
+        commit=$(git rev-parse --short HEAD)
+
+        git add . >> /dev/null
+        if [[ $(git status -s) ]]; then
+          git commit --amend -m "deploy: ${GITHUB_SHA}"
+          git push origin backstage_yaml:backstage_yaml -f
+        else
+          echo "Nothing to amend"
+        fi
