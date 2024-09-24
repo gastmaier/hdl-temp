@@ -11,7 +11,7 @@ dir_: str = "backstage_yaml"
 doc_link: str = 'https://analogdevicesinc.github.io/hdl'
 link_entry_: str = 'https://github.com/analogdevicesinc/hdl/tree/main'
 source_location: str = 'https://github.com/analogdevicesinc/hdl/tree/main'
-edit_url: str = "https://github.com/analogdevicesinc/hdl/tree/backstage_yaml"
+loc_url: str = "https://github.com/analogdevicesinc/hdl/tree/backstage_yaml"
 targets: List = []
 link_entry: Dict = {
     'url': None,
@@ -46,7 +46,6 @@ def yaml_template() -> dict:
             'classification': 'software',
             'license': ['ADI BSD License'],
             'annotations': {
-                'backstage.io/edit-url': None,
                 'backstage.io/source-location': None
             },
             'tags': ['hdl'],
@@ -206,7 +205,6 @@ def write_hdl_library_yaml(
     m['name'] = f"hdl-library-{key_}"
     m['title'] = f"{library['name'].upper()} HDL IP core"
     m['version'] = 'main'
-    a['backstage.io/edit-url'] = f"{edit_url}/library-{key_}-catalog-info.yaml"
     a['backstage.io/source-location'] = f'url:{source_location}/library/{key}'
     m['tags'].extend(['library', 'ip-core'])
     link_entry['url'] = f"{link_entry_}/library/{key}"
@@ -240,11 +238,10 @@ def write_hdl_library_yaml(
                 t['spec']['dependsOn']: List = []
             t['spec']['dependsOn'].extend(depends_on)
 
-    targets.append(m['annotations']['backstage.io/edit-url'])
+    targets.append(f"{loc_url}/library-{key_}-catalog-info.yaml")
 
-    # metadata.description is optional.
     if m['description'] is None:
-        del m['description']
+        m['description'] = m['title']
 
     file = path.join(dir_, f"library-{key_}-catalog-info.yaml")
     with open(file, 'w', encoding='utf-8') as f:
@@ -262,7 +259,6 @@ def write_hdl_project_yaml(
     m['name'] = f"hdl-project-{key_}"
     m['title'] = f"{project['name'].upper()} HDL project"
     m['version'] = 'main'
-    a['backstage.io/edit-url'] = f"{edit_url}/project-{key_}-catalog-info.yaml"
     a['backstage.io/source-location'] = f'url:{source_location}/projects/{key}'
     m['tags'].extend(['project', 'reference-design'])
     if key.startswith('common'):
@@ -291,15 +287,14 @@ def write_hdl_project_yaml(
     if key___ is not None:
         m['tags'].append(key___)
 
-    targets.append(m['annotations']['backstage.io/edit-url'])
+    targets.append(f"{loc_url}/project-{key_}-catalog-info.yaml")
     if len(project['lib_deps']) > 0:
         depends_on = [f"hdl-library-{ld_.replace('/', '-')}"
                       for ld_ in project['lib_deps']]
         t['spec']['dependsOn'] = depends_on
 
-    # metadata.description is optional.
     if m['description'] is None:
-        del m['description']
+        m['description'] = m['title']
     elif key___ is not None:
         m['description'] += ("\nIt targets the "
                              f"{vendor[project['vendor']]} "
