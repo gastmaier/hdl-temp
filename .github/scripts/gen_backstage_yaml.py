@@ -64,6 +64,7 @@ def yaml_template() -> dict:
 def get_description_parts(
     desc: List[str]
 ) -> Tuple[str, List[str]]:
+    desc = [de.strip()+'\n' for de in desc]
     desc = ''.join(desc)
     # Grab ADI role part name without text
     r0 = r"(:adi:`)([^<>:]+?)(`)"
@@ -91,7 +92,7 @@ def get_description_parts(
     # and also to compensate by the removed roles
     desc = desc.replace('. ', '.\\n')
     desc = desc.replace('\n\n', '\\n\\n')
-    desc = desc.replace('\n', '')
+    desc = desc.replace('\n', ' ')
     desc = desc.replace('\\n', '\n')
     desc = desc.split('\n')
     desc = [textwrap.fill(des, width=80) for des in desc]
