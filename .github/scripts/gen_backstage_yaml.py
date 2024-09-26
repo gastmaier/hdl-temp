@@ -405,7 +405,8 @@ def generate(tag: str) -> None:
         mkdir(dir_)
     dir_ = path.join(dir_, tag)
     if not path.isdir(dir_):
-        mkdir(dir_)
+        import pathlib
+        pathlib.Path(dir_).mkdir(parents=True, exist_ok=True)
 
     project, library = makefile_pre()
 
