@@ -1,18 +1,17 @@
 from typing import Dict, List, Tuple
-from os import path, mkdir
+from os import path, mkdir, walk, chdir
+from glob import glob
 import textwrap
 import yaml
 import re
-
-from adi_doctools.typing.hdl import Library, Project
-from adi_doctools.cli.hdl_gen import makefile_pre
+import argparse
 
 dir_: str = "backstage_yaml"
 doc_link: str = 'https://analogdevicesinc.github.io/hdl'
 link_entry_: str = 'https://github.com/analogdevicesinc/hdl/tree/main'
 source_location: str = 'https://github.com/analogdevicesinc/hdl/tree/main'
 loc_url: str = "https://github.com/analogdevicesinc/hdl/tree/backstage_yaml"
-targets: List = []
+dep_base: str = "Component:hdl-library"
 link_entry: Dict = {
     'url': None,
     'title': 'Source code',
@@ -61,10 +60,10 @@ def yaml_template() -> dict:
 
 
 def get_description_parts(
-    desc: List[str]
+    desc_: List[str]
 ) -> Tuple[str, List[str]]:
-    desc = [de.strip()+'\n' for de in desc]
-    desc = ''.join(desc)
+    desc_ = [de.strip()+'\n' for de in desc_]
+    desc: str = ''.join(desc_)
     # Grab ADI role part name without text
     r0 = r"(:adi:`)([^<>:]+?)(`)"
     # Pop roles without text
@@ -93,9 +92,9 @@ def get_description_parts(
     desc = desc.replace('\n\n', '\\n\\n')
     desc = desc.replace('\n', ' ')
     desc = desc.replace('\\n', '\n')
-    desc = desc.split('\n')
-    desc = [textwrap.fill(des, width=80) for des in desc]
-    desc = '\n'.join(desc)
+    desc_ = desc.split('\n')
+    desc_ = [textwrap.fill(des, width=80) for des in desc_]
+    desc = '\n'.join(desc_)
 
     return desc, list(parts)
 
@@ -124,7 +123,7 @@ def get_description(
 
 def get_description_library(
     file: str
-) -> Tuple[List[str], List[str], str]:
+) -> Tuple[str, List[str], str]:
     """
     Get the first paragraph of a project index file.
     Accepts
@@ -143,7 +142,7 @@ def get_description_library(
             break
 
     if index == -1:
-        return [], []
+        return '', [], ''
 
     title = data[index-3][:-1]
     data = data[index:]
@@ -154,7 +153,7 @@ def get_description_library(
 
 def get_description_project(
     file: str
-) -> Tuple[List[str], List[str]]:
+) -> Tuple[str, List[str], str]:
     """
     Get the first paragraph of a project index file.
     Accepts both
@@ -181,7 +180,7 @@ def get_description_project(
             break
 
     if index == -1:
-        return [], []
+        return '', [], ''
 
     title = data[index-3][:-1]
 
@@ -195,16 +194,22 @@ def get_description_project(
 
 
 def write_hdl_library_yaml(
-    library: Library,
-    key: str
+    library,
+    key: str,
+    tag: str,
+    dir_: str
 ) -> None:
     key_ = key.replace('/', '-')
     t: Dict = yaml_template()
     m = t['metadata']
     a = m['annotations']
     m['name'] = f"hdl-library-{key_}"
+    if tag != "main":
+        m['name'] = m['name'] + '-' + tag
     m['title'] = f"{library['name'].upper()} HDL IP core"
-    m['version'] = 'main'
+    if tag != "main":
+        m['title'] = m['title'] + ' ' + tag
+    m['version'] = tag
     a['backstage.io/source-location'] = f'url:{source_location}/library/{key}'
     m['tags'].extend(['library', 'ip-core'])
     link_entry['url'] = f"{link_entry_}/library/{key}"
@@ -230,35 +235,42 @@ def write_hdl_library_yaml(
     elif key.startswith('corundum'):
         m['license'].append('BSD-2-Clause-Views')
 
-    for v in library['vendor']:
-        ld = library['vendor'][v]['library_dependencies']
-        if len(ld) > 0:
-            depends_on = [f"hdl-library-{ld_.replace('/', '-')}" for ld_ in ld]
-            if 'depends_on' not in t['spec']:
-                t['spec']['dependsOn']: List = []
-            t['spec']['dependsOn'].extend(depends_on)
-
-    targets.append(f"{loc_url}/library-{key_}-catalog-info.yaml")
+    if tag != "main":
+        for v in library['vendor']:
+            ld = library['vendor'][v]['library_dependencies']
+            depends_on = [f"{dep_base}-{ld_.replace('/', '-')}-{tag}"
+                          for ld_ in ld]
+            if len(ld) > 0:
+                if 'depends_on' not in t['spec']:
+                    t['spec']['dependsOn'] = []
+                t['spec']['dependsOn'].extend(depends_on)
 
     if m['description'] is None:
         m['description'] = m['title']
 
     file = path.join(dir_, f"library-{key_}-catalog-info.yaml")
     with open(file, 'w', encoding='utf-8') as f:
-        yaml.dump(t, f, default_flow_style=False, allow_unicode=True)
+        yaml.dump(t, f, default_flow_style=False, sort_keys=False,
+                  allow_unicode=True)
 
 
 def write_hdl_project_yaml(
-    project: Project,
-    key: str
+    project,
+    key: str,
+    tag: str,
+    dir_: str
 ) -> None:
     key_ = key.replace('/', '-')
     t: Dict = yaml_template()
     m = t['metadata']
     a = m['annotations']
     m['name'] = f"hdl-project-{key_}"
+    if tag != "main":
+        m['name'] = m['name'] + '-' + tag
     m['title'] = f"{project['name'].upper()} HDL project"
-    m['version'] = 'main'
+    if tag != "main":
+        m['title'] = m['title'] + ' ' + tag
+    m['version'] = tag
     a['backstage.io/source-location'] = f'url:{source_location}/projects/{key}'
     m['tags'].extend(['project', 'reference-design'])
     if key.startswith('common'):
@@ -287,11 +299,11 @@ def write_hdl_project_yaml(
     if key___ is not None:
         m['tags'].append(key___)
 
-    targets.append(f"{loc_url}/project-{key_}-catalog-info.yaml")
-    if len(project['lib_deps']) > 0:
-        depends_on = [f"hdl-library-{ld_.replace('/', '-')}"
-                      for ld_ in project['lib_deps']]
-        t['spec']['dependsOn'] = depends_on
+    if tag != "main":
+        if len(project['lib_deps']) > 0:
+            depends_on = [f"{dep_base}-{ld_.replace('/', '-')}-{tag}"
+                          for ld_ in project['lib_deps']]
+            t['spec']['dependsOn'] = depends_on
 
     if m['description'] is None:
         m['description'] = m['title']
@@ -303,29 +315,74 @@ def write_hdl_project_yaml(
 
     file = path.join(dir_, f"project-{key_}-catalog-info.yaml")
     with open(file, 'w', encoding='utf-8') as f:
-        yaml.dump(t, f, default_flow_style=False, allow_unicode=True)
+        yaml.dump(t, f, default_flow_style=False, sort_keys=False,
+                  allow_unicode=True)
 
 
-def write_hdl_locations_yaml(
-    library: Dict[str, Library],
-    project: Dict[str, Project]
-) -> None:
+def concat_and_write_yaml(dir_: str) -> Tuple[List[str], str]:
+    if not path.isdir(dir_):
+        mkdir(dir_)
+
+    dirs = next(walk('.'))[1]
+    dirs.remove(dir_)
+    dirs.remove('main')
+    dirs.sort()
+    dirs.insert(0, 'main')
+
+    targets: Dict[str, List[str]] = {}
+    for d in dirs:
+        chdir(d)
+        targets[d] = glob('*.yaml')
+        chdir('..')
+
+    files: Dict[str, List[str]] = {}
+
+    for d in targets:
+        for d_ in targets[d]:
+            if d_ not in targets['main']:
+                print(f"Warning: {d} version of component {d_} not on "
+                      "component (main), skipped")
+                continue
+            if d_ in files:
+                files[d_].append('---\n')
+            else:
+                files[d_] = []
+
+            with open(path.join(d, d_)) as f:
+                data = f.readlines()
+            files[d_].extend(data)
+
+    for d_ in files:
+        with open(path.join(dir_, d_), "w") as f:
+            for line in files[d_]:
+                f.write(line)
+
+    return list(files.keys()), dir_
+
+
+def write_hdl_locations_yaml(targets: List[str], dir_: str) -> None:
     """
     Generate locations.yaml
     """
-    with open(path.join(dir_, 'locations.yaml'), 'w', encoding='utf-8') as f:
-        yaml.dump({
-            'apiVersion': 'backstage.io/v1alpha1',
-            'kind': 'Location',
-            'metadata': {
-                'name': 'hdl-location'
-            },
-            'spec': {
-                'owner': 'group:default/hdl-sw-team',
-                'type': 'url',
-                'targets': targets
-            }
-        }, f)
+    targets = [f"{loc_url}/{dir_}/{t}" for t in targets]
+    targets.sort()
+    chunks = [targets[t:t+100] for t in range(0, len(targets), 100)]
+
+    for i, c in enumerate(chunks):
+        with open(path.join(f"locations-{i}.yaml"),
+                  'w', encoding='utf-8') as f:
+            yaml.dump({
+                'apiVersion': 'backstage.io/v1alpha1',
+                'kind': 'Location',
+                'metadata': {
+                    'name': 'hdl-location'
+                },
+                'spec': {
+                    'owner': 'group:default/hdl-sw-team',
+                    'type': 'url',
+                    'targets': c
+                }
+            }, f)
 
 
 def str_presenter(dumper, data):
@@ -335,25 +392,80 @@ def str_presenter(dumper, data):
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
 
-def main():
+def generate(tag: str) -> None:
+    from adi_doctools.cli.hdl_gen import makefile_pre
+
+    if tag is None:
+        tag = "main"
+
     yaml.add_representer(str, str_presenter)
 
+    dir_: str = ".backstage_yaml"
+    if not path.isdir(dir_):
+        mkdir(dir_)
+    dir_ = path.join(dir_, tag)
     if not path.isdir(dir_):
         mkdir(dir_)
 
     project, library = makefile_pre()
 
     for key in library:
-        write_hdl_library_yaml(library[key], key)
+        write_hdl_library_yaml(library[key], key, tag, dir_)
 
     for key in project:
-        write_hdl_project_yaml(project[key], key)
+        write_hdl_project_yaml(project[key], key, tag, dir_)
 
-    write_hdl_locations_yaml(library, project)
+
+def resolve_yaml(tag: str = None) -> None:
+    if tag is not None:
+        print("--resolve does not take positional arguments.")
+        return
+    if not path.isdir('main'):
+        print("The components need to be generate first (main folder).")
+        return
+
+    dir_: str = "yaml"
+
+    write_hdl_locations_yaml(
+        *concat_and_write_yaml(dir_)
+    )
 
 
 if __name__ == '__main__':
     """
     Run from repo root.
+    For components (ci push to main):
+
+    ::
+
+        # At main root
+        /path/to/gen_backstage_yaml.py
+        # At backstage_yaml branch root
+        /path/to/gen_backstage_yaml.py --resolve
+
+    For version of components (semi-annually):
+
+    ::
+
+        # At main root
+        /path/to/gen_backstage_yaml.py 2022_r2_p1
+        # At backstage_yaml branch root
+        /path/to/gen_backstage_yaml.py --resolve
+
+    Do not remove yaml files from main after they have been created,
+    because even if deprecated, older version of components still link
+    to it.
     """
-    main()
+    parser = argparse.ArgumentParser(description='Generate Backstage.io YAML files.')
+    parser.add_argument('tag', metavar='Tag', type=str, nargs='?', default=None,
+                        help="Generate 'component' (main) or 'version of "
+                             "component' (e.g. 2022.r2) component (default: "
+                             "main)")
+    parser.add_argument('--resolve', dest='do', action='store_const',
+                        const=resolve_yaml, default=generate,
+                        help=("Resolve YAML by concating 'components' with "
+                              "'version of components' and updates "
+                              "locations_*.yaml"))
+
+    args = parser.parse_args()
+    args.do(args.tag)
