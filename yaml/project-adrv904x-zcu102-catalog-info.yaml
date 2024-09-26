@@ -1,0 +1,90 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-adrv904x-zcu102
+  title: ADRV904X_ZCU102 HDL project
+  description: >
+    The ADRV904x is a highly integrated, system on chip (SoC) radio frequency (RF)
+    agile transceiver with integrated digital front end (DFE). The SoC contains eight
+    transmitters, two observation receivers for monitoring transmitter channels, eight
+    receivers, integrated LO and clock synthesizers, and digital signal processing
+    functions. The SoC meets the high radio performance and low power consumption
+    demanded by cellular infrastructure applications including small cell basestation
+    radios, macro 3G/4G/5G systems, and massive MIMO base stations.
+
+    It targets the AMD Xilinx ZCU102.
+  version: main
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/main/projects/adrv904x/zcu102
+  tags:
+  - hdl
+  - project
+  - reference-design
+  - zcu102
+  links:
+  - url: https://gastmaier.github.io/hdl-temp/projects/adrv904x/index.html
+    title: Documentation
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-adrv904x-zcu102-2027_r1
+  title: ADRV904X_ZCU102 HDL project 2027_r1
+  description: >
+    The ADRV904x is a highly integrated, system on chip (SoC) radio frequency (RF)
+    agile transceiver with integrated digital front end (DFE). The SoC contains eight
+    transmitters, two observation receivers for monitoring transmitter channels, eight
+    receivers, integrated LO and clock synthesizers, and digital signal processing
+    functions. The SoC meets the high radio performance and low power consumption
+    demanded by cellular infrastructure applications including small cell basestation
+    radios, macro 3G/4G/5G systems, and massive MIMO base stations.
+
+    It targets the AMD Xilinx ZCU102.
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/adrv904x/zcu102
+  tags:
+  - hdl
+  - project
+  - reference-design
+  - zcu102
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/adrv904x/zcu102
+    title: Source code
+    icon: web
+  - url: https://gastmaier.github.io/hdl-temp/2027_r1/projects/adrv904x/index.html
+    title: Documentation
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-project-adrv904x-zcu102
+  dependsOn:
+  - Component:hdl-library-axi_dmac-2027_r1
+  - Component:hdl-library-axi_sysid-2027_r1
+  - Component:hdl-library-data_offload-2027_r1
+  - Component:hdl-library-jesd204-ad_ip_jesd204_tpl_adc-2027_r1
+  - Component:hdl-library-jesd204-ad_ip_jesd204_tpl_dac-2027_r1
+  - Component:hdl-library-jesd204-axi_jesd204_rx-2027_r1
+  - Component:hdl-library-jesd204-axi_jesd204_tx-2027_r1
+  - Component:hdl-library-jesd204-jesd204_rx_static_config-2027_r1
+  - Component:hdl-library-jesd204-jesd204_tx-2027_r1
+  - Component:hdl-library-sysid_rom-2027_r1
+  - Component:hdl-library-util_do_ram-2027_r1
+  - Component:hdl-library-util_hbm-2027_r1
+  - Component:hdl-library-util_pack-util_cpack2-2027_r1
+  - Component:hdl-library-util_pack-util_upack2-2027_r1
+  - Component:hdl-library-xilinx-axi_adxcvr-2027_r1
+  - Component:hdl-library-xilinx-util_adxcvr-2027_r1

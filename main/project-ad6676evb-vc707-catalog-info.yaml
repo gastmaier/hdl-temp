@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-ad6676evb-vc707
+  title: AD6676EVB_VC707 HDL project
+  description: AD6676EVB_VC707 HDL project
+  version: main
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/main/projects/ad6676evb/vc707
+  tags:
+  - hdl
+  - project
+  - reference-design
+  - vc707
+  links: []
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain

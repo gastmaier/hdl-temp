@@ -1,0 +1,49 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-ad7124_asdz-de10nano-2027_r1
+  title: AD7124-ASDZ HDL project 2027_r1
+  description: >
+    The HDL reference design for the AD7124-4 and AD7124-8 provides a 4/8-Channel,
+    Low Noise, Low Power, 24-Bit, Sigma-Delta ADC with PGA and Reference.
+
+    The AD7124-4/8 offers output data rates from 1.17 SPS up to 19,200 SPS. The AD7124-4/8
+    can achieve simultaneous 50 Hz and 60 Hz rejection when operating at an output
+    data rate of 25 SPS (single cycle settling), with rejection in excess of 80 dB
+    achieved at lower output data rates.
+
+    This project has a SPI instance to control and acquire data from the AD7124-4/8
+    24-bit precision ADC. This instance provides support for capturing continuous
+    samples at the maximum sample rate.
+
+    It targets the Intel Altera DE10NANO.
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/ad7124_asdz/de10nano
+  tags:
+  - ad7124-4
+  - ad7124-8
+  - de10nano
+  - hdl
+  - project
+  - reference-design
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/ad7124_asdz/de10nano
+    title: Source code
+    icon: web
+  - url: https://gastmaier.github.io/hdl-temp/2027_r1/projects/ad7124_asdz/index.html
+    title: Documentation
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-project-ad7124_asdz-de10nano
+  dependsOn:
+  - Component:hdl-library-axi_dmac-2027_r1
+  - Component:hdl-library-axi_hdmi_tx-2027_r1
+  - Component:hdl-library-axi_sysid-2027_r1
+  - Component:hdl-library-sysid_rom-2027_r1

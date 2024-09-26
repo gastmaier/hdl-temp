@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-common-vmk180-2027_r1
+  title: TEMPLATE_VMK180 HDL project 2027_r1
+  description: >
+    Template project.It targets the AMD Xilinx VMK180.
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/common/vmk180
+  tags:
+  - hdl
+  - project
+  - reference-design
+  - template
+  - vmk180
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/common/vmk180
+    title: Source code
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-project-common-vmk180
+  dependsOn:
+  - Component:hdl-library-axi_sysid-2027_r1
+  - Component:hdl-library-sysid_rom-2027_r1

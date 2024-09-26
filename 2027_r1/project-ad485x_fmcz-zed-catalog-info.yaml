@@ -1,0 +1,49 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-ad485x_fmcz-zed-2027_r1
+  title: AD485x_FMCZ HDL project 2027_r1
+  description: >
+    This design is meant to support the AD485x family. For example, EVAL-AD4858 board
+    contains AD4858 chip, which is a 20-bit, low noise 8-channel simultaneous sampling
+    successive approximation register (SAR) ADC, with buffered differential, wide
+    common range picoamp inputs.
+
+    It targets the AMD Xilinx ZED.
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/ad485x_fmcz/zed
+  tags:
+  - ad4858
+  - eval-ad4858
+  - hdl
+  - project
+  - reference-design
+  - zed
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/ad485x_fmcz/zed
+    title: Source code
+    icon: web
+  - url: https://gastmaier.github.io/hdl-temp/2027_r1/projects/ad485x_fmcz/index.html
+    title: Documentation
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-project-ad485x_fmcz-zed
+  dependsOn:
+  - Component:hdl-library-axi_ad485x-2027_r1
+  - Component:hdl-library-axi_clkgen-2027_r1
+  - Component:hdl-library-axi_dmac-2027_r1
+  - Component:hdl-library-axi_hdmi_tx-2027_r1
+  - Component:hdl-library-axi_i2s_adi-2027_r1
+  - Component:hdl-library-axi_pwm_gen-2027_r1
+  - Component:hdl-library-axi_spdif_tx-2027_r1
+  - Component:hdl-library-axi_sysid-2027_r1
+  - Component:hdl-library-sysid_rom-2027_r1
+  - Component:hdl-library-util_i2c_mixer-2027_r1
+  - Component:hdl-library-util_pack-util_cpack2-2027_r1

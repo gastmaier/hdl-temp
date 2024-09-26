@@ -1,0 +1,27 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-library-xilinx-axi_xcvrlb-2027_r1
+  title: AXI_XCVRLB HDL IP core 2027_r1
+  description: AXI_XCVRLB HDL IP core 2027_r1
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/xilinx/axi_xcvrlb
+  tags:
+  - hdl
+  - ip-core
+  - library
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/xilinx/axi_xcvrlb
+    title: Source code
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-library-xilinx-axi_xcvrlb
+  dependsOn:
+  - Component:hdl-library-util_cdc-2027_r1

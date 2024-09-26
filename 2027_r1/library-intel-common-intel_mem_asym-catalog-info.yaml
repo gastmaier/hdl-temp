@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-library-intel-common-intel_mem_asym-2027_r1
+  title: INTEL_MEM_ASYM HDL IP core 2027_r1
+  description: INTEL_MEM_ASYM HDL IP core 2027_r1
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/intel/common/intel_mem_asym
+  tags:
+  - hdl
+  - ip-core
+  - library
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/intel/common/intel_mem_asym
+    title: Source code
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-library-intel-common-intel_mem_asym

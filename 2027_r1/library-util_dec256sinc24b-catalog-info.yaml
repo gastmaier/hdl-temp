@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-library-util_dec256sinc24b-2027_r1
+  title: UTIL_DEC256SINC24B HDL IP core 2027_r1
+  description: UTIL_DEC256SINC24B HDL IP core 2027_r1
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/util_dec256sinc24b
+  tags:
+  - hdl
+  - ip-core
+  - library
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/util_dec256sinc24b
+    title: Source code
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-library-util_dec256sinc24b

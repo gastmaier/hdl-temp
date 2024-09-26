@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-library-axi_ad9122-2027_r1
+  title: AXI_AD9122 HDL IP core 2027_r1
+  description: AXI_AD9122 HDL IP core 2027_r1
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/axi_ad9122
+  tags:
+  - hdl
+  - ip-core
+  - library
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/library/axi_ad9122
+    title: Source code
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-library-axi_ad9122

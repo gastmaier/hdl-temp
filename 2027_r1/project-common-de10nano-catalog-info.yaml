@@ -1,0 +1,33 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hdl-project-common-de10nano-2027_r1
+  title: TEMPLATE_DE10NANO HDL project 2027_r1
+  description: >
+    Template project.It targets the Intel Altera DE10NANO.
+  version: 2027_r1
+  classification: software
+  license:
+  - ADI BSD License
+  annotations:
+    backstage.io/source-location: url:https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/common/de10nano
+  tags:
+  - de10nano
+  - hdl
+  - project
+  - reference-design
+  - template
+  links:
+  - url: https://github.com/gastmaier/hdl-temp/tree/2027_r1/projects/common/de10nano
+    title: Source code
+    icon: web
+spec:
+  owner: group:default/hdl-sw-team
+  type: source
+  lifecycle: sustain
+  subcomponentOf: hdl-project-common-de10nano
+  dependsOn:
+  - Component:hdl-library-axi_dmac-2027_r1
+  - Component:hdl-library-axi_hdmi_tx-2027_r1
+  - Component:hdl-library-axi_sysid-2027_r1
+  - Component:hdl-library-sysid_rom-2027_r1
