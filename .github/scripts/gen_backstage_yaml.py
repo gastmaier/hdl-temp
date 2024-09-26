@@ -1,16 +1,17 @@
 from typing import Dict, List, Tuple
 from os import path, mkdir, walk, chdir
 from glob import glob
-import textwrap
 import yaml
 import re
 import argparse
 
+org_: str = "analogdevicesinc"
+repo_: str = "hdl"
+branch_: str = "main"
 dir_: str = "backstage_yaml"
-doc_link: str = 'https://analogdevicesinc.github.io/hdl'
-link_entry_: str = 'https://github.com/analogdevicesinc/hdl/tree/main'
-source_location: str = 'https://github.com/analogdevicesinc/hdl/tree/main'
-loc_url: str = "https://github.com/analogdevicesinc/hdl/tree/backstage_yaml"
+doc_link_: str = 'https://{org}.github.io/{repo}'
+source_location_: str = 'https://github.com/{org}/{repo}/tree/{tag}'
+loc_url_: str = "https://github.com/{org}/{repo}/tree/backstage_yaml"
 dep_base: str = "Component:hdl-library"
 link_entry: Dict = {
     'url': None,
@@ -62,7 +63,6 @@ def yaml_template() -> dict:
 def get_description_parts(
     desc_: List[str]
 ) -> Tuple[str, List[str]]:
-    desc_ = [de.strip()+'\n' for de in desc_]
     desc: str = ''.join(desc_)
     # Grab ADI role part name without text
     r0 = r"(:adi:`)([^<>:]+?)(`)"
@@ -86,15 +86,11 @@ def get_description_parts(
     desc = re.sub(r3, r'\2', desc)
     desc = desc.replace('`', '').replace('*', '')
 
-    # Re-fold at column 80 since some content overflows
-    # and also to compensate by the removed roles
-    desc = desc.replace('. ', '.\\n')
-    desc = desc.replace('\n\n', '\\n\\n')
+    # Un-fold, let pyyaml re-fold for us
+    desc = desc.replace('\n\n', '\\n')
     desc = desc.replace('\n', ' ')
-    desc = desc.replace('\\n', '\n')
-    desc_ = desc.split('\n')
-    desc_ = [textwrap.fill(des, width=80) for des in desc_]
-    desc = '\n'.join(desc_)
+    desc = re.sub(' +', ' ', desc)
+    desc = desc.replace('\\n', '\n').strip()+'\n'
 
     return desc, list(parts)
 
@@ -197,22 +193,27 @@ def write_hdl_library_yaml(
     library,
     key: str,
     tag: str,
-    dir_: str
+    dir_: str,
+    args
 ) -> None:
+    doc_link = doc_link_.format(org=args.org, repo=args.repo)
+    if tag != 'main':
+        doc_link += '/' + tag
+    source_location = source_location_.format(org=args.org, repo=args.repo,
+                                              tag=tag)
     key_ = key.replace('/', '-')
     t: Dict = yaml_template()
     m = t['metadata']
     a = m['annotations']
     m['name'] = f"hdl-library-{key_}"
     if tag != "main":
+        t['spec']['subcomponentOf'] = m['name']
         m['name'] = m['name'] + '-' + tag
     m['title'] = f"{library['name'].upper()} HDL IP core"
-    if tag != "main":
-        m['title'] = m['title'] + ' ' + tag
     m['version'] = tag
     a['backstage.io/source-location'] = f'url:{source_location}/library/{key}'
     m['tags'].extend(['library', 'ip-core'])
-    link_entry['url'] = f"{link_entry_}/library/{key}"
+    link_entry['url'] = f"{source_location}/library/{key}"
     m['links'].append(link_entry)
     tags_ = None
     file1 = path.join('docs', 'library', key, 'index.rst')
@@ -228,6 +229,8 @@ def write_hdl_library_yaml(
     if tags_:
         m['tags'].extend(tags_)
         m['title'] = title + " HDL IP core"
+    if tag != "main":
+        m['title'] = m['title'] + ' ' + tag
     m['tags'].sort()
 
     if key.startswith('jesd204'):
@@ -258,24 +261,29 @@ def write_hdl_project_yaml(
     project,
     key: str,
     tag: str,
-    dir_: str
+    dir_: str,
+    args
 ) -> None:
+    doc_link = doc_link_.format(org=args.org, repo=args.repo)
+    if tag != 'main':
+        doc_link += '/' + tag
+    source_location = source_location_.format(org=args.org, repo=args.repo,
+                                              tag=tag)
     key_ = key.replace('/', '-')
     t: Dict = yaml_template()
     m = t['metadata']
     a = m['annotations']
     m['name'] = f"hdl-project-{key_}"
     if tag != "main":
+        t['spec']['subcomponentOf'] = m['name']
         m['name'] = m['name'] + '-' + tag
     m['title'] = f"{project['name'].upper()} HDL project"
-    if tag != "main":
-        m['title'] = m['title'] + ' ' + tag
     m['version'] = tag
     a['backstage.io/source-location'] = f'url:{source_location}/projects/{key}'
     m['tags'].extend(['project', 'reference-design'])
     if key.startswith('common'):
         m['tags'].append('template')
-    link_entry['url'] = f"{link_entry_}/projects/{key}"
+    link_entry['url'] = f"{source_location}/projects/{key}"
     if key.startswith('common'):
         m['description'] = "Template project."
     m['links'].append(link_entry)
@@ -296,6 +304,8 @@ def write_hdl_project_yaml(
     if tags_:
         m['tags'].extend(tags_)
         m['title'] = title
+    if tag != "main":
+        m['title'] = m['title'] + ' ' + tag
     if key___ is not None:
         m['tags'].append(key___)
 
@@ -308,9 +318,9 @@ def write_hdl_project_yaml(
     if m['description'] is None:
         m['description'] = m['title']
     elif key___ is not None:
-        m['description'] += ("\nIt targets the "
+        m['description'] += ("It targets the "
                              f"{vendor[project['vendor']]} "
-                             f"{key___.upper()}.")
+                             f"{key___.upper()}.\n")
     m['tags'].sort()
 
     file = path.join(dir_, f"project-{key_}-catalog-info.yaml")
@@ -360,10 +370,15 @@ def concat_and_write_yaml(dir_: str) -> Tuple[List[str], str]:
     return list(files.keys()), dir_
 
 
-def write_hdl_locations_yaml(targets: List[str], dir_: str) -> None:
+def write_hdl_locations_yaml(
+    targets: List[str],
+    dir_: str,
+    args
+) -> None:
     """
     Generate locations.yaml
     """
+    loc_url = loc_url_.format(org=args.org, repo=args.repo)
     targets = [f"{loc_url}/{dir_}/{t}" for t in targets]
     targets.sort()
     chunks = [targets[t:t+100] for t in range(0, len(targets), 100)]
@@ -388,11 +403,11 @@ def write_hdl_locations_yaml(targets: List[str], dir_: str) -> None:
 def str_presenter(dumper, data):
     if '\n' in data:
         return dumper.represent_scalar('tag:yaml.org,2002:str',
-                                       data, style='|')
+                                       data, style='>')
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
 
-def generate(tag: str) -> None:
+def generate(tag: str, args) -> None:
     from adi_doctools.cli.hdl_gen import makefile_pre
 
     if tag is None:
@@ -411,13 +426,13 @@ def generate(tag: str) -> None:
     project, library = makefile_pre()
 
     for key in library:
-        write_hdl_library_yaml(library[key], key, tag, dir_)
+        write_hdl_library_yaml(library[key], key, tag, dir_, args)
 
     for key in project:
-        write_hdl_project_yaml(project[key], key, tag, dir_)
+        write_hdl_project_yaml(project[key], key, tag, dir_, args)
 
 
-def resolve_yaml(tag: str = None) -> None:
+def resolve_yaml(tag: str, args) -> None:
     if tag is not None:
         print("--resolve does not take positional arguments.")
         return
@@ -428,7 +443,8 @@ def resolve_yaml(tag: str = None) -> None:
     dir_: str = "yaml"
 
     write_hdl_locations_yaml(
-        *concat_and_write_yaml(dir_)
+        *concat_and_write_yaml(dir_),
+        args
     )
 
 
@@ -457,8 +473,9 @@ if __name__ == '__main__':
     because even if deprecated, older version of components still link
     to it.
     """
-    parser = argparse.ArgumentParser(description='Generate Backstage.io YAML files.')
-    parser.add_argument('tag', metavar='Tag', type=str, nargs='?', default=None,
+    parser = argparse.ArgumentParser(description='Generate Backstage YAML')
+    parser.add_argument('tag', metavar='Tag', type=str, nargs='?',
+                        default=None,
                         help="Generate 'component' (main) or 'version of "
                              "component' (e.g. 2022.r2) component (default: "
                              "main)")
@@ -468,5 +485,15 @@ if __name__ == '__main__':
                               "'version of components' and updates "
                               "locations_*.yaml"))
 
+    parser.add_argument('--org', dest='org',
+                        nargs='?',
+                        const=org_, default=org_,
+                        help=(f"Organization (default: {org_})"))
+
+    parser.add_argument('--repo', dest='repo',
+                        nargs='?',
+                        const=repo_, default=repo_,
+                        help=(f"Repository (default: {repo_})"))
+
     args = parser.parse_args()
-    args.do(args.tag)
+    args.do(args.tag, args)
