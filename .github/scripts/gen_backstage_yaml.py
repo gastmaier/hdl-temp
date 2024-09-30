@@ -13,11 +13,6 @@ doc_link_: str = 'https://{org}.github.io/{repo}'
 source_location_: str = 'https://github.com/{org}/{repo}/tree/{tag}'
 loc_url_: str = "https://github.com/{org}/{repo}/tree/backstage_yaml"
 dep_base: str = "Component:hdl-library"
-link_entry: Dict = {
-    'url': None,
-    'title': 'Source code',
-    'icon': 'web'
-}
 
 link_entry_doc: Dict = {
     'url': None,
@@ -213,8 +208,6 @@ def write_hdl_library_yaml(
     m['version'] = tag
     a['backstage.io/source-location'] = f'url:{source_location}/library/{key}'
     m['tags'].extend(['library', 'ip-core'])
-    link_entry['url'] = f"{source_location}/library/{key}"
-    m['links'].append(link_entry)
     tags_ = None
     file1 = path.join('docs', 'library', key, 'index.rst')
     file2 = path.join('docs', 'library', key+'.rst')
@@ -283,10 +276,8 @@ def write_hdl_project_yaml(
     m['tags'].extend(['project', 'reference-design'])
     if key.startswith('common'):
         m['tags'].append('template')
-    link_entry['url'] = f"{source_location}/projects/{key}"
     if key.startswith('common'):
         m['description'] = "Template project."
-    m['links'].append(link_entry)
 
     tags_ = None
     key__ = key[:key.find('/')] if '/' in key else key
