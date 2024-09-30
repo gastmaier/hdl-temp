@@ -79,6 +79,8 @@ def get_description_parts(
         if not ('/' in m.group(4)):
             parts.add(m.group(4).lower())
     desc = re.sub(r3, r'\2', desc)
+    # Try to preserve lists
+    desc = re.sub(r'(\n){1,2}(\s*)[\*-]\s+', r'\n\n\2- ', desc)
     desc = desc.replace('`', '').replace('*', '')
 
     # Un-fold, let pyyaml re-fold for us
@@ -129,7 +131,7 @@ def get_description_library(
     index = -1
     for i, d in enumerate(data):
         if d.startswith("==="):
-            index = i+2
+            index = i+2 if data[i+1] == '\n' else i+1
             break
 
     if index == -1:
@@ -167,7 +169,7 @@ def get_description_project(
     index = -1
     for i, d in enumerate(data):
         if d.startswith("==="):
-            index = i+2
+            index = i+2 if data[i+1] == '\n' else i+1
             break
 
     if index == -1:
@@ -176,7 +178,8 @@ def get_description_project(
     title = data[index-3][:-1]
 
     if "Overview\n" in data:
-        index = data.index("Overview\n")+3
+        index = data.index("Overview\n")+2
+        index = index+1 if data[index] == '\n' else index
 
     data = data[index:]
     desc = get_description(data)
