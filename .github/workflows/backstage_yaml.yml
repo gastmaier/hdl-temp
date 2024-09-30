@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - backstage # TODO main
+      - main
     tags:
       - '2[0-9][0-9][0-9]_[rR][1-2]'
   pull_request:
@@ -13,8 +13,7 @@ jobs:
     steps:
     - name: Get tag
       run: |
-        # TODO main
-        if [ ${{ github.ref == 'refs/heads/backstage' }} == true ] ; then
+        if [ ${{ github.ref == 'refs/heads/main' }} == true ] ; then
           echo "tag=main" >> "$GITHUB_ENV"
         else
           echo "tag=${{ github.ref_name }}" >> "$GITHUB_ENV"
@@ -46,7 +45,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag' || github.ref == 'refs/heads/backstage' # TODO main
+    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
     needs: [generate]
     permissions:
       contents: write
@@ -54,8 +53,7 @@ jobs:
     steps:
     - name: Get tag
       run: |
-        # TODO main
-        if [ ${{ github.ref == 'refs/heads/backstage' }} == true ] ; then
+        if [ ${{ github.ref == 'refs/heads/main' }} == true ] ; then
           echo "tag=main" >> "$GITHUB_ENV"
         else
           echo "tag=${{ github.ref_name }}" >> "$GITHUB_ENV"
